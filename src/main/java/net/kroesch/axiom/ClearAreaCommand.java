@@ -30,8 +30,8 @@ public class ClearAreaCommand implements CommandExecutor {
 
         try {
             // 3. Argumente in Zahlen umwandeln
-            int length = Integer.parseInt(args[0]); // X-Achse
-            int width = Integer.parseInt(args[1]);  // Z-Achse
+            int length = Integer.parseInt(args[0]); // x-Achse
+            int width = Integer.parseInt(args[1]);  // z-Achse
             int height = 10; // Feste Höhe
 
             // 4. Spieler-Position als Zentrum holen
