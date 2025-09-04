@@ -1,0 +1,8 @@
+name: Axiom
+version: '1.0'
+main: net.kroesch.axiom.AxiomPlugin
+api-version: '1.21'
+commands:
+  hallo:
+    description: Ein einfacher Testbefehl
+    usage: /<command>

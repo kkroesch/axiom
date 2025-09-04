@@ -1,0 +1,51 @@
+# Name des Workflows, der in der "Actions"-Übersicht auf GitHub angezeigt wird
+name: Build and Release Axiom Plugin
+
+# Trigger: Wann dieser Workflow ausgeführt werden soll
+on:
+  push:
+    # Führe den Workflow nur aus, wenn ein neuer Tag gepusht wird, der mit 'v' beginnt
+    tags:
+      - 'v*'
+
+# Jobs: Eine Liste von Aufgaben, die ausgeführt werden
+jobs:
+  build:
+    # Name des Jobs
+    name: Build Plugin JAR
+    # Das Betriebssystem, auf dem der Job laufen soll (ein von GitHub gehosteter Runner)
+    runs-on: ubuntu-latest
+
+    # Schritte: Die einzelnen Aktionen, die innerhalb des Jobs ausgeführt werden
+    steps:
+      # Schritt 1: Code auschecken
+      # Lädt den Code deines Repositories auf den Runner herunter
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      # Schritt 2: Java Development Kit (JDK) einrichten
+      # Installiert die korrekte Java-Version (JDK 21) für den Build
+      - name: Set up JDK 21
+        uses: actions/setup-java@v4
+        with:
+          java-version: '21'
+          distribution: 'temurin'
+          cache: 'maven' # Cacht die Maven-Abhängigkeiten für schnellere zukünftige Builds
+
+      # Schritt 3: Plugin mit Maven bauen
+      # Führt den Maven-Befehl aus, um das JAR-File zu kompilieren und zu paketieren
+      - name: Build with Maven
+        run: mvn -B clean package
+
+      # Schritt 4: Release erstellen und JAR hochladen
+      # Nutzt eine Action, um einen neuen Draft-Release auf GitHub zu erstellen
+      # und das kompilierte JAR-File als Anhang hochzuladen.
+      - name: Create Release and Upload JAR
+        uses: softprops/action-gh-release@v2
+        with:
+          # Erstellt den Release als Entwurf (Draft), damit du ihn vor der Veröffentlichung prüfen kannst
+          draft: true
+          # Der Name des Releases wird automatisch aus dem Tag-Namen generiert
+          name: Axiom ${{ github.ref_name }}
+          files: |
+            target/Axiom-*.jar
