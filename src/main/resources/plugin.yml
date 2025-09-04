@@ -6,3 +6,15 @@ commands:
   hallo:
     description: Ein einfacher Testbefehl
     usage: /<command>
+  cleararea:
+    description: Löscht alle Blöcke in einem Rechteck um dich herum.
+    usage: /<command> <länge> <breite>
+    aliases: [ ca, clearrect ]
+  buildwall:
+    description: Baut eine Mauer mit fester Stärke um dich herum.
+    usage: /<command> <länge> <breite> <höhe> [material]
+    aliases: [ bw, wall ]
+  digtunnel:
+    description: Gräbt einen 2x2 Tunnel mit Schienen und Fackeln.
+    usage: /<command> <länge>
+    aliases: [dt, tunnel]
