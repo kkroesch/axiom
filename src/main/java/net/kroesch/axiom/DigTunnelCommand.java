@@ -1,11 +1,12 @@
 package net.kroesch.axiom;
 
-
 import org.bukkit.Location;
 import org.bukkit.Material;
 import org.bukkit.World;
 import org.bukkit.block.Block;
 import org.bukkit.block.BlockFace;
+import org.bukkit.block.data.BlockData;
+import org.bukkit.block.data.Directional;
 import org.bukkit.block.data.Rail;
 import org.bukkit.command.Command;
 import org.bukkit.command.CommandExecutor;
@@ -26,56 +27,52 @@ public class DigTunnelCommand implements CommandExecutor {
         Player player = (Player) sender;
 
         if (args.length != 1) {
-            return false; // Zeigt die 'usage' aus der plugin.yml
+            return false;
         }
 
         try {
             int length = Integer.parseInt(args[0]);
-            int height = 2;
-            int width = 2;
 
-            Location startLocation = player.getLocation();
+            BlockFace direction = getCardinalDirection(player);
+            Vector directionVector = direction.getDirection();
+            Vector leftVector = new Vector(directionVector.getZ(), 0, -directionVector.getX());
+
+            Location startLocation = player.getLocation().getBlock().getLocation();
             World world = startLocation.getWorld();
 
-            // 1. Blickrichtung des Spielers als Vektor holen
-            Vector direction = player.getEyeLocation().getDirection().setY(0).normalize();
+            player.sendMessage("§aGrabe einen " + length + " Blöcke langen Tunnel in Richtung " + direction.name() + "...");
 
-            // 2. Einen Vektor, der 90 Grad links von der Blickrichtung ist (für die Breite)
-            Vector left = new Vector(direction.getZ(), 0, -direction.getX()).normalize();
-
-            player.sendMessage("§aGrabe einen " + length + " Blöcke langen Tunnel...");
-
-            // 3. Den Tunnel Block für Block bauen
             for (int i = 0; i < length; i++) {
-                // Berechne den Mittelpunkt des aktuellen Tunnel-Segments
-                Location currentCenter = startLocation.clone().add(direction.clone().multiply(i));
+                Location currentBase = startLocation.clone().add(directionVector.clone().multiply(i));
 
                 // Tunnel graben (2x2 Bereich)
-                for (int w = 0; w < width; w++) {
-                    for (int h = 0; h < height; h++) {
-                        Location blockToClear = currentCenter.clone().add(left.clone().multiply(w)).add(0, h, 0);
-                        blockToClear.getBlock().setType(Material.AIR, false); // 'false' verhindert Physik-Updates während des Grabens
+                for (int h = 0; h < 2; h++) {
+                    for (int w = 0; w < 2; w++) {
+                        currentBase.clone().add(leftVector.clone().multiply(w)).add(0, h, 0).getBlock().setType(Material.AIR, false);
                     }
                 }
 
-                // Boden-Blöcke (für die Schienen)
-                Location railLocation = currentCenter.clone();
-                Location railLocationLeft = currentCenter.clone().add(left);
+                // Schiene auf der linken Seite des Tunnels legen
+                Block railBlock = currentBase.clone().add(leftVector).getBlock();
+                setRail(railBlock, direction);
 
-                // Schienen legen
-                setRail(railLocation.getBlock());
-                setRail(railLocationLeft.getBlock());
-
-
-                // Alle 10 Blöcke eine Nische mit Fackel bauen
+                // Alle 10 Blöcke eine Nische mit Fackel
                 if (i > 0 && i % 10 == 0) {
-                    // Nische graben (1 Block tief in die linke Wand)
-                    Location nicheLocation = currentCenter.clone().add(left.clone().multiply(width)).add(0, 1, 0); // Augenhöhe
+                    Location nicheLocation = currentBase.clone().add(leftVector.clone().multiply(2)).add(0, 1, 0);
                     nicheLocation.getBlock().setType(Material.AIR, false);
 
-                    // Fackel an die Rückwand der Nische platzieren
-                    Block torchLocationBlock = nicheLocation.clone().add(left).getBlock();
-                    torchLocationBlock.setType(Material.TORCH);
+                    // --- KORRIGIERTER FACKEL-TEIL ---
+                    Block torchBlock = nicheLocation.getBlock();
+                    torchBlock.setType(Material.WALL_TORCH); // Das richtige Material verwenden
+
+                    // BlockData holen und über das Interface ansprechen
+                    BlockData blockData = torchBlock.getBlockData();
+                    if (blockData instanceof Directional) {
+                        Directional directional = (Directional) blockData;
+                        // Fackel an der Wand ausrichten, sodass sie in den Tunnel zeigt
+                        directional.setFacing(direction.getOppositeFace());
+                        torchBlock.setBlockData(directional);
+                    }
                 }
             }
 
@@ -89,17 +86,31 @@ public class DigTunnelCommand implements CommandExecutor {
         return true;
     }
 
-    /**
-     * Eine Hilfsmethode, um eine Schiene zu setzen.
-     * @param railBlock Der Block, an dem die Schiene platziert werden soll.
-     */
-    private void setRail(Block railBlock) {
-        if (railBlock.getType() != Material.RAIL) {
-            railBlock.setType(Material.RAIL);
+    private BlockFace getCardinalDirection(Player player) {
+        float yaw = player.getLocation().getYaw();
+        if (yaw < 0) {
+            yaw += 360;
         }
-        // Optional: Schienen ausrichten. Für gerade Tunnel ist das meist nicht nötig.
-        // Rail railData = (Rail) railBlock.getBlockData();
-        // railData.setShape(Rail.Shape.NORTH_SOUTH); // oder EAST_WEST, je nach Richtung
-        // railBlock.setBlockData(railData);
+        if (yaw >= 315 || yaw < 45) {
+            return BlockFace.SOUTH;
+        } else if (yaw < 135) {
+            return BlockFace.WEST;
+        } else if (yaw < 225) {
+            return BlockFace.NORTH;
+        } else {
+            return BlockFace.EAST;
+        }
+    }
+
+    private void setRail(Block railBlock, BlockFace tunnelDirection) {
+        railBlock.setType(Material.RAIL);
+        Rail railData = (Rail) railBlock.getBlockData();
+
+        if (tunnelDirection == BlockFace.NORTH || tunnelDirection == BlockFace.SOUTH) {
+            railData.setShape(Rail.Shape.NORTH_SOUTH);
+        } else {
+            railData.setShape(Rail.Shape.EAST_WEST);
+        }
+        railBlock.setBlockData(railData);
     }
 }
