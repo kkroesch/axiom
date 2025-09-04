@@ -19,12 +19,10 @@ public class DigTunnelCommand implements CommandExecutor {
 
     @Override
     public boolean onCommand(@NotNull CommandSender sender, @NotNull Command command, @NotNull String label, @NotNull String[] args) {
-        if (!(sender instanceof Player)) {
+        if (!(sender instanceof Player player)) {
             sender.sendMessage("Dieser Befehl kann nur von einem Spieler ausgeführt werden.");
             return true;
         }
-
-        Player player = (Player) sender;
 
         if (args.length != 1) {
             return false;
@@ -38,7 +36,6 @@ public class DigTunnelCommand implements CommandExecutor {
             Vector leftVector = new Vector(directionVector.getZ(), 0, -directionVector.getX());
 
             Location startLocation = player.getLocation().getBlock().getLocation();
-            World world = startLocation.getWorld();
 
             player.sendMessage("§aGrabe einen " + length + " Blöcke langen Tunnel in Richtung " + direction.name() + "...");
 
@@ -67,8 +64,7 @@ public class DigTunnelCommand implements CommandExecutor {
 
                     // BlockData holen und über das Interface ansprechen
                     BlockData blockData = torchBlock.getBlockData();
-                    if (blockData instanceof Directional) {
-                        Directional directional = (Directional) blockData;
+                    if (blockData instanceof Directional directional) {
                         // Fackel an der Wand ausrichten, sodass sie in den Tunnel zeigt
                         directional.setFacing(direction.getOppositeFace());
                         torchBlock.setBlockData(directional);

@@ -1,3 +1,6 @@
+![Logo](logo.png)
+
+
 # Axiom
 
 A powerful, admin-focused Minecraft plugin for building and modifying structures with precision commands. Axiom is designed for server operators who need reliable and flexible tools for structural work.
