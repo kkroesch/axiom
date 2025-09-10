@@ -46,6 +46,6 @@ jobs:
           # Erstellt den Release als Entwurf (Draft), damit du ihn vor der Veröffentlichung prüfen kannst
           draft: true
           # Der Name des Releases wird automatisch aus dem Tag-Namen generiert
-          name: Axiom ${{ github.ref_name }}
+          name: axiom ${{ github.ref_name }}
           files: |
-            target/Axiom-*.jar
+            target/axiom-*.jar
