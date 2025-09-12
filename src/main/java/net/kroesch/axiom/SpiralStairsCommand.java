@@ -10,12 +10,13 @@ import org.bukkit.entity.Player;
 import org.bukkit.util.Vector;
 import org.jetbrains.annotations.NotNull;
 
-import java.util.Arrays;
+import java.util.ArrayList;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
 
 public class SpiralStairsCommand implements CommandExecutor {
 
-    // Das Material für die Treppenblöcke. Kann beliebig geändert werden.
     private static final Material STAIR_BLOCK_MATERIAL = Material.COBBLESTONE;
     private static final Material AIR_MATERIAL = Material.AIR;
 
@@ -33,76 +34,89 @@ public class SpiralStairsCommand implements CommandExecutor {
             return true;
         }
 
-        if (args.length != 1) {
+        if (args.length < 1 || args.length > 2) {
             return false;
         }
 
         try {
             int depth = Integer.parseInt(args[0]);
-            if (depth <= 0) {
-                player.sendMessage("§cDie Tiefe muss grösser als 0 sein.");
+            int width = 2;
+            if (args.length == 2) {
+                width = Integer.parseInt(args[1]);
+            }
+
+            if (depth <= 0 || width <= 0) {
+                player.sendMessage("§cTiefe und Breite müssen grösser als 0 sein.");
                 return true;
             }
 
-            // Startpunkt ist der Block, auf dem der Spieler steht.
             Location startLocation = player.getLocation().getBlock().getLocation();
 
-            player.sendMessage("§aGrabe einen " + depth + " Blöcke tiefen Schacht mit Block-Treppe...");
+            player.sendMessage("§aBeginne mit dem Aushub für eine " + width + "x" + width + " Treppe...");
 
-            // Rufe die neue Methode zum Bauen auf.
-            buildShaftWithBlockStairs(startLocation, depth);
+            buildInTwoPhases(startLocation, depth, width);
 
-            player.sendMessage("§aSchacht und Treppe erfolgreich gebaut!");
+            player.sendMessage("§aTreppe erfolgreich gebaut!");
 
         } catch (NumberFormatException e) {
-            player.sendMessage("§cFehler: Bitte gib eine gültige Zahl für die Tiefe an.");
+            player.sendMessage("§cFehler: Bitte gib gültige Zahlen für Tiefe und Breite an.");
             return false;
         }
 
         return true;
     }
 
+    private List<Vector> generateSpiralOffsets(int width) {
+        List<Vector> offsets = new ArrayList<>();
+        int w = width;
+
+        // Nord-Seite
+        for (int x = w - 1; x >= 0; x--) offsets.add(new Vector(x, 0, -1));
+        offsets.add(new Vector(-1, 0, -1)); // Nord-West-Ecke
+
+        // West-Seite
+        for (int z = 0; z < w; z++) offsets.add(new Vector(-1, 0, z));
+        offsets.add(new Vector(-1, 0, w)); // Süd-West-Ecke
+
+        // Süd-Seite
+        for (int x = 0; x < w; x++) offsets.add(new Vector(x, 0, w));
+        offsets.add(new Vector(w, 0, w)); // Süd-Ost-Ecke
+
+        // Ost-Seite
+        for (int z = w - 1; z >= 0; z--) offsets.add(new Vector(w, 0, z));
+        offsets.add(new Vector(w, 0, -1)); // Nord-Ost-Ecke
+
+        return offsets;
+    }
+
     /**
-     * Baut einen 2x2 Schacht und eine darumliegende, linksläufige Treppe aus einzelnen Blöcken.
-     * @param startLocation Der Startpunkt (oberste Ebene).
-     * @param depth Die zu grabende Tiefe in Blöcken.
+     * Führt den Bau in zwei getrennten Phasen aus: Aushub und Konstruktion.
      */
-    private void buildShaftWithBlockStairs(Location startLocation, int depth) {
+    private void buildInTwoPhases(Location startLocation, int depth, int width) {
         World world = startLocation.getWorld();
+        final List<Vector> spiralOffsets = generateSpiralOffsets(width);
 
-        // Definiert die 8 relativen Positionen der Blöcke für eine volle 360°-Drehung
-        // gegen den Uhrzeigersinn ("linksrum").
-        final List<Vector> counterClockwiseSpiral = Arrays.asList(
-                new Vector(1, 0, -1),  // Nord-Ost
-                new Vector(0, 0, -1),  // Nord-West
-                new Vector(-1, 0, 0),  // West-Nord
-                new Vector(-1, 0, 1),  // West-Süd
-                new Vector(0, 0, 2),   // Süd-West
-                new Vector(1, 0, 2),   // Süd-Ost
-                new Vector(2, 0, 1),   // Ost-Süd
-                new Vector(2, 0, 0)    // Ost-Nord
-        );
+        // --- PHASE 1: AUSHUB ---
+        // Wir holen uns alle einzigartigen X/Z Positionen der Treppe, um jede Säule nur einmal auszuheben.
+        Set<Vector> uniqueHorizontalOffsets = new HashSet<>(spiralOffsets);
 
-        // 1. Zuerst den gesamten 4x4-Bereich leeren, um den Schacht und den Luftraum zu schaffen.
-        // Der Kern ist bei (0,0) bis (1,1), die Treppe läuft aussenrum bei (-1,-1) bis (2,2).
-        for (int yOffset = 0; yOffset < depth; yOffset++) {
-            for (int x = -1; x <= 2; x++) {
-                for (int z = -1; z <= 2; z++) {
-                    startLocation.clone().add(x, -yOffset, z).getBlock().setType(AIR_MATERIAL);
-                }
+        for (Vector horizontalOffset : uniqueHorizontalOffsets) {
+            for (int y = 0; y < depth; y++) {
+                // Berechne die absolute Position und setze den Block auf Luft
+                Location locToClear = startLocation.clone().add(horizontalOffset).add(0, -y, 0);
+                locToClear.getBlock().setType(AIR_MATERIAL);
             }
         }
 
-        // 2. Jetzt die Treppenblöcke Schicht für Schicht platzieren.
-        for (int yOffset = 0; yOffset < depth; yOffset++) {
-            // Finde die richtige Position in der 8-Schritte-Spirale
-            int stepIndex = yOffset % 8;
-            Vector relativePos = counterClockwiseSpiral.get(stepIndex);
+        // --- PHASE 2: KONSTRUKTION (VON UNTEN NACH OBEN) ---
+        // Die Schleife läuft rückwärts, von der tiefsten Stufe zur höchsten.
+        for (int step = depth - 1; step >= 0; step--) {
+            int stepIndex = step % spiralOffsets.size();
+            Vector relativePos = spiralOffsets.get(stepIndex);
 
-            // Berechne die absolute Position des Blocks für die aktuelle Tiefe
-            Location blockLocation = startLocation.clone().add(relativePos.getX(), -yOffset, relativePos.getZ());
+            int yOffset = -step;
 
-            // Setze den Block
+            Location blockLocation = startLocation.clone().add(relativePos).add(0, yOffset, 0);
             blockLocation.getBlock().setType(STAIR_BLOCK_MATERIAL);
         }
     }
