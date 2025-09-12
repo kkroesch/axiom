@@ -2,7 +2,9 @@ package net.kroesch.axiom;
 
 import org.bukkit.Location;
 import org.bukkit.Material;
-import org.bukkit.World;
+import org.bukkit.block.Block;
+import org.bukkit.block.BlockFace;
+import org.bukkit.block.data.type.Stairs;
 import org.bukkit.command.Command;
 import org.bukkit.command.CommandExecutor;
 import org.bukkit.command.CommandSender;
@@ -17,9 +19,11 @@ import java.util.Set;
 
 public class SpiralStairsCommand implements CommandExecutor {
 
-    private static final Material STAIR_BLOCK_MATERIAL = Material.COBBLESTONE;
+    private static final Material STAIRS_MATERIAL = Material.COBBLESTONE_STAIRS;
+    private static final Material CORNER_MATERIAL = Material.COBBLESTONE_SLAB; // NEU: Material für die Ecken
     private static final Material AIR_MATERIAL = Material.AIR;
 
+    // ... (onCommand und generateSpiralOffsets bleiben unverändert) ...
     @Override
     public boolean onCommand(@NotNull CommandSender sender, @NotNull Command command, @NotNull String label, @NotNull String[] args) {
         if (!(sender instanceof Player)) {
@@ -52,7 +56,7 @@ public class SpiralStairsCommand implements CommandExecutor {
 
             Location startLocation = player.getLocation().getBlock().getLocation();
 
-            player.sendMessage("§aBeginne mit dem Aushub für eine " + width + "x" + width + " Treppe...");
+            player.sendMessage("§aBeginne mit dem Aushub für eine " + width + "x" + width + " Treppe mit massiven Ecken...");
 
             buildInTwoPhases(startLocation, depth, width);
 
@@ -70,54 +74,71 @@ public class SpiralStairsCommand implements CommandExecutor {
         List<Vector> offsets = new ArrayList<>();
         int w = width;
 
-        // Nord-Seite
         for (int x = w - 1; x >= 0; x--) offsets.add(new Vector(x, 0, -1));
-        offsets.add(new Vector(-1, 0, -1)); // Nord-West-Ecke
+        offsets.add(new Vector(-1, 0, -1));
 
-        // West-Seite
         for (int z = 0; z < w; z++) offsets.add(new Vector(-1, 0, z));
-        offsets.add(new Vector(-1, 0, w)); // Süd-West-Ecke
+        offsets.add(new Vector(-1, 0, w));
 
-        // Süd-Seite
         for (int x = 0; x < w; x++) offsets.add(new Vector(x, 0, w));
-        offsets.add(new Vector(w, 0, w)); // Süd-Ost-Ecke
+        offsets.add(new Vector(w, 0, w));
 
-        // Ost-Seite
         for (int z = w - 1; z >= 0; z--) offsets.add(new Vector(w, 0, z));
-        offsets.add(new Vector(w, 0, -1)); // Nord-Ost-Ecke
+        offsets.add(new Vector(w, 0, -1));
 
         return offsets;
     }
 
-    /**
-     * Führt den Bau in zwei getrennten Phasen aus: Aushub und Konstruktion.
-     */
     private void buildInTwoPhases(Location startLocation, int depth, int width) {
-        World world = startLocation.getWorld();
         final List<Vector> spiralOffsets = generateSpiralOffsets(width);
 
-        // --- PHASE 1: AUSHUB ---
-        // Wir holen uns alle einzigartigen X/Z Positionen der Treppe, um jede Säule nur einmal auszuheben.
+        // --- PHASE 1: AUSHUB (unverändert) ---
         Set<Vector> uniqueHorizontalOffsets = new HashSet<>(spiralOffsets);
-
         for (Vector horizontalOffset : uniqueHorizontalOffsets) {
             for (int y = 0; y < depth; y++) {
-                // Berechne die absolute Position und setze den Block auf Luft
                 Location locToClear = startLocation.clone().add(horizontalOffset).add(0, -y, 0);
                 locToClear.getBlock().setType(AIR_MATERIAL);
             }
         }
 
-        // --- PHASE 2: KONSTRUKTION (VON UNTEN NACH OBEN) ---
-        // Die Schleife läuft rückwärts, von der tiefsten Stufe zur höchsten.
-        for (int step = depth - 1; step >= 0; step--) {
-            int stepIndex = step % spiralOffsets.size();
-            Vector relativePos = spiralOffsets.get(stepIndex);
+        // --- PHASE 2: KONSTRUKTION (MIT MASSIVEN ECKEN) ---
+        for (int step = 0; step < depth; step++) {
+            int listSize = spiralOffsets.size();
+            Vector currentOffset = spiralOffsets.get(step % listSize);
+            Vector nextOffset = spiralOffsets.get((step + 1) % listSize);
+            Vector prevOffset = spiralOffsets.get((step - 1 + listSize) % listSize);
 
-            int yOffset = -step;
+            Vector deltaOut = nextOffset.clone().subtract(currentOffset);
+            Vector deltaIn = currentOffset.clone().subtract(prevOffset);
 
-            Location blockLocation = startLocation.clone().add(relativePos).add(0, yOffset, 0);
-            blockLocation.getBlock().setType(STAIR_BLOCK_MATERIAL);
+            Location blockLocation = startLocation.clone().add(currentOffset).add(0, -step, 0);
+            Block block = blockLocation.getBlock();
+
+            // KORREKTUR: Prüfen, ob es eine Ecke ist.
+            if (!deltaIn.equals(deltaOut)) {
+                // In der Ecke einen massiven Block setzen
+                block.setType(CORNER_MATERIAL);
+            } else {
+                // Ansonsten eine normale, gerade Treppenstufe setzen
+                BlockFace facing = getFaceFromVector(deltaOut).getOppositeFace();
+
+                block.setType(STAIRS_MATERIAL);
+                Stairs stairData = (Stairs) block.getBlockData();
+
+                stairData.setFacing(facing);
+                stairData.setShape(Stairs.Shape.STRAIGHT); // Form ist jetzt immer gerade
+                stairData.setHalf(Stairs.Half.BOTTOM);
+
+                block.setBlockData(stairData);
+            }
         }
+    }
+
+    private BlockFace getFaceFromVector(Vector v) {
+        if (v.getX() > 0.1) return BlockFace.EAST;
+        if (v.getX() < -0.1) return BlockFace.WEST;
+        if (v.getZ() > 0.1) return BlockFace.SOUTH;
+        if (v.getZ() < -0.1) return BlockFace.NORTH;
+        return BlockFace.NORTH;
     }
 }
