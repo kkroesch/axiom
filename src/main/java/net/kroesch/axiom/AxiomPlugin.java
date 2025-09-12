@@ -13,6 +13,7 @@ public final class AxiomPlugin extends JavaPlugin {
         this.getCommand("digtunnel").setExecutor(new DigTunnelCommand());
         this.getCommand("cleararea").setExecutor(new ClearAreaCommand());
         this.getCommand("buildwall").setExecutor(new BuildWallCommand());
+        this.getCommand("spiralstair").setExecutor(new SpiralStairsCommand());
     }
 
     @Override

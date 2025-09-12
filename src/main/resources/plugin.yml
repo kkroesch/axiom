@@ -18,3 +18,7 @@ commands:
     description: Gräbt einen 2x2 Tunnel mit Schienen und Fackeln.
     usage: /<command> <länge>
     aliases: [dt, tunnel]
+  spiralstair:
+    description: Baut eine spiralförmige Treppe nach unten um einen 2x2 Kern.
+    usage: /spiralstair <depth>
+    aliases: [ss, spiral]
