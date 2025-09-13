@@ -26,3 +26,7 @@ commands:
     description: Baut ein Nether-Portal am Standort des Spielers.
     usage: /<command>
     permission: axiom.command.buildportal
+  starterkit:
+    description: Erstellt eine grosse Kiste mit einer Starter-Ausrüstung.
+    usage: /<command>
+    permission: axiom.command.kit.starter
