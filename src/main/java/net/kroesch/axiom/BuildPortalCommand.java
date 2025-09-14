@@ -3,7 +3,6 @@ package net.kroesch.axiom;
 import org.bukkit.Location;
 import org.bukkit.Material;
 import org.bukkit.World;
-import org.bukkit.block.Block;
 import org.bukkit.command.Command;
 import org.bukkit.command.CommandExecutor;
 import org.bukkit.command.CommandSender;
@@ -14,12 +13,10 @@ public class BuildPortalCommand implements CommandExecutor {
 
     @Override
     public boolean onCommand(@NotNull CommandSender sender, @NotNull Command command, @NotNull String label, @NotNull String[] args) {
-        if (!(sender instanceof Player)) {
+        if (!(sender instanceof Player player)) {
             sender.sendMessage("Dieser Befehl kann nur von einem Spieler ausgeführt werden.");
             return true;
         }
-
-        Player player = (Player) sender;
 
         if (!player.hasPermission("axiom.command.buildportal")) {
             player.sendMessage("§cDu hast keine Berechtigung, diesen Befehl zu verwenden.");
@@ -35,7 +32,7 @@ public class BuildPortalCommand implements CommandExecutor {
 
         // Baue den 4x5 Obsidian-Rahmen
         if (facingNorthSouth) {
-            // Portal wird in Ost-West-Richtung gebaut (breit entlang der X-Achse)
+            // Portal wird in Ost-West-Richtung gebaut (breit entlang der x-Achse)
             for (int x = 0; x < 4; x++) {
                 // Boden
                 world.getBlockAt(startLocation.clone().add(x - 1, 0, 0)).setType(Material.OBSIDIAN);
@@ -51,7 +48,7 @@ public class BuildPortalCommand implements CommandExecutor {
             world.getBlockAt(startLocation.clone().add(0, 1, 0)).setType(Material.FIRE);
 
         } else {
-            // Portal wird in Nord-Süd-Richtung gebaut (breit entlang der Z-Achse)
+            // Portal wird in Nord-Süd-Richtung gebaut (breit entlang der z-Achse)
             for (int z = 0; z < 4; z++) {
                 // Boden
                 world.getBlockAt(startLocation.clone().add(0, 0, z - 1)).setType(Material.OBSIDIAN);

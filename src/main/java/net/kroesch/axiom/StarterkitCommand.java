@@ -16,19 +16,17 @@ public class StarterkitCommand implements CommandExecutor {
 
     @Override
     public boolean onCommand(@NotNull CommandSender sender, @NotNull Command command, @NotNull String label, @NotNull String[] args) {
-        if (!(sender instanceof Player)) {
+        if (!(sender instanceof Player player)) {
             sender.sendMessage("Dieser Befehl kann nur von einem Spieler ausgeführt werden.");
             return true;
         }
-
-        Player player = (Player) sender;
 
         if (!player.hasPermission("axiom.command.kit.starter")) {
             player.sendMessage("§cDu hast keine Berechtigung, diesen Befehl zu verwenden.");
             return true;
         }
 
-        // Finde einen Platz vor dem Spieler, um die Kiste zu platzieren
+        // Finde einen Platz vor dem Spieler, um die Kiste zu platzieren.
         // Wir nehmen den Block, auf den der Spieler schaut, und gehen eine Position nach oben
         Block targetBlock = player.getTargetBlock(null, 5).getRelative(0, 1, 0);
         Location chestLocation = targetBlock.getLocation();
