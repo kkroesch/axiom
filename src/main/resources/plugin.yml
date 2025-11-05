@@ -30,3 +30,8 @@ commands:
     description: Erstellt eine grosse Kiste mit einer Starter-Ausrüstung.
     usage: /<command>
     permission: axiom.command.kit.starter
+  mineshaft:
+    description: Gräbt einen Minenschacht basierend auf der Blickrichtung.
+    usage: /<command> [tiefe]
+    aliases: [ms]
+    permission: axiom.mineshaft # Optional: Wenn du Rechte dafür vergeben willst
