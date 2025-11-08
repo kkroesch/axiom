@@ -43,8 +43,10 @@ public class StarterkitCommand implements CommandExecutor {
         chestInventory.clear(); // Leere die Kiste zur Sicherheit
 
         // ----- Befülle die Kiste -----
-        // Materialien
-        chestInventory.addItem(new ItemStack(Material.RAW_IRON, 64));
+        // Baumaterial & Licht
+        chestInventory.addItem(new ItemStack(Material.LANTERN, 64));
+        chestInventory.addItem(new ItemStack(Material.OAK_PLANKS, 64));
+        chestInventory.addItem(new ItemStack(Material.OAK_DOOR, 1));
         chestInventory.addItem(new ItemStack(Material.RAW_IRON, 64));
         chestInventory.addItem(new ItemStack(Material.COAL, 64));
         chestInventory.addItem(new ItemStack(Material.COAL, 64));
@@ -54,19 +56,25 @@ public class StarterkitCommand implements CommandExecutor {
 
         // Werkzeuge
         chestInventory.addItem(new ItemStack(Material.FLINT_AND_STEEL, 1));
-        chestInventory.addItem(new ItemStack(Material.BUCKET, 1));
+        chestInventory.addItem(new ItemStack(Material.BUCKET, 2));
         chestInventory.addItem(new ItemStack(Material.NETHERITE_AXE, 1));
         chestInventory.addItem(new ItemStack(Material.NETHERITE_SWORD, 1));
         chestInventory.addItem(new ItemStack(Material.NETHERITE_SHOVEL, 1));
+        chestInventory.addItem(new ItemStack(Material.NETHERITE_PICKAXE, 1));
 
-        // NEU: Rüstung
-        chestInventory.addItem(new ItemStack(Material.IRON_HELMET, 1));
-        chestInventory.addItem(new ItemStack(Material.IRON_CHESTPLATE, 1));
-        chestInventory.addItem(new ItemStack(Material.IRON_LEGGINGS, 1));
-        chestInventory.addItem(new ItemStack(Material.IRON_BOOTS, 1));
+        // Netherite Ausrüstung
+        chestInventory.addItem(new ItemStack(Material.NETHERITE_HELMET, 1));
+        chestInventory.addItem(new ItemStack(Material.NETHERITE_CHESTPLATE, 1));
+        chestInventory.addItem(new ItemStack(Material.NETHERITE_LEGGINGS, 1));
+        chestInventory.addItem(new ItemStack(Material.NETHERITE_BOOTS, 1));
 
-        // Nahrung & Farmen
-        chestInventory.addItem(new ItemStack(Material.COOKED_BEEF, 32));
+        // Spawn
+        chestInventory.addItem(new ItemStack(Material.RED_BED, 1)); // (Standard-Bettfarbe)
+
+        // Nahrung und Transport
+        chestInventory.addItem(new ItemStack(Material.CARROT, 64));
+        chestInventory.addItem(new ItemStack(Material.SHIELD, 1));
+        chestInventory.addItem(new ItemStack(Material.SADDLE, 1));        chestInventory.addItem(new ItemStack(Material.COOKED_BEEF, 32));
         chestInventory.addItem(new ItemStack(Material.WHEAT_SEEDS, 16));
         // -----------------------------
 
