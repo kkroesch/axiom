@@ -22,17 +22,27 @@ Restart your PaperMC server.
 Here is a list of all available commands in the Axiom plugin.
 
 ### /cleararea
-Clears all blocks in a rectangular area centered on you, up to a fixed height of 10 blocks.
+Clears all blocks in a rectangular box. By default the area is centered on you and 10 blocks high, counted from your feet upwards. With `corner` the box starts at your position (or at `X Y Z`) and grows towards east (+X) and south (+Z), matching a blueprint anchored at that corner.
 
-**Usage:** `/cleararea LENGTH WIDTH`
+Large areas are cleared in slices over several ticks (top to bottom, without physics updates), so the server keeps running smoothly.
+
+**Usage:** `/cleararea LENGTH WIDTH [HEIGHT] [corner [X Y Z]]`
 
 **Aliases:** `ca`, `clearrect`
 
 **Arguments:**
 
-`LENGTH`: The size of the area along the X-axis.
+`LENGTH`: The size of the area along the X-axis (1-512).
 
-`WIDTH`: The size of the area along the Z-axis.
+`WIDTH`: The size of the area along the Z-axis (1-512).
+
+`[HEIGHT]` (Optional): Height in blocks, counted from the start Y upwards. Defaults to 10 (max 512).
+
+`[corner]` (Optional): Start at the corner instead of centering the area. The keyword `ecke` works as well.
+
+`[X Y Z]` (Optional, only with `corner`): Explicit start position. This also allows running the command from the console or via RCON, using the main world, e.g. `cleararea 51 51 46 corner -804 65 597`.
+
+Examples: `/cleararea 20 20`, `/cleararea 51 51 46 corner`.
 
 ### /buildwall
 Constructs a hollow rectangular wall with a fixed thickness of 2 blocks, centered on your location.

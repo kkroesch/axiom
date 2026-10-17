@@ -11,7 +11,9 @@ public final class AxiomPlugin extends JavaPlugin {
         // Registriert den /hallo Befehl und weist ihn der HalloCommand Klasse zu
         this.getCommand("hallo").setExecutor(new EchoCommand());
         this.getCommand("digtunnel").setExecutor(new DigTunnelCommand());
-        this.getCommand("cleararea").setExecutor(new ClearAreaCommand());
+        ClearAreaCommand clearArea = new ClearAreaCommand(this);
+        this.getCommand("cleararea").setExecutor(clearArea);
+        this.getCommand("cleararea").setTabCompleter(clearArea);
         this.getCommand("buildwall").setExecutor(new BuildWallCommand());
         this.getCommand("spiralstair").setExecutor(new SpiralStairsCommand());
         this.getCommand("buildportal").setExecutor(new BuildPortalCommand());
