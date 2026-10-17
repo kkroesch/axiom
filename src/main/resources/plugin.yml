@@ -7,9 +7,10 @@ commands:
     description: Ein einfacher Testbefehl
     usage: /<command>
   cleararea:
-    description: Löscht alle Blöcke in einem Rechteck um dich herum.
-    usage: /<command> <länge> <breite>
+    description: Räumt einen Quader leer (um dich herum oder ab einer Ecke).
+    usage: /<command> <länge> <breite> [höhe] [corner [x y z]]
     aliases: [ ca, clearrect ]
+    permission: axiom.command.cleararea
   buildwall:
     description: Baut eine Mauer mit fester Stärke um dich herum.
     usage: /<command> <länge> <breite> <höhe> [material]
@@ -35,3 +36,17 @@ commands:
     usage: /<command> [tiefe]
     aliases: [ms]
     permission: axiom.mineshaft # Optional: Wenn du Rechte dafür vergeben willst
+permissions:
+  axiom.command.cleararea:
+    description: Erlaubt /cleararea
+    default: op
+  axiom.command.*:
+    description: Alle Axiom-Befehle
+    default: op
+    children:
+      axiom.command.cleararea: true
+  axiom.*:
+    description: Alle Axiom-Funktionen
+    default: op
+    children:
+      axiom.command.*: true
